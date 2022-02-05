@@ -1,5 +1,6 @@
 #include<SDL.h>
 #include<iostream>
+#include<Windows.h>
 using namespace std;
 
 int main(int argc, char* argv[])
@@ -33,10 +34,15 @@ int main(int argc, char* argv[])
 		cout << "Error Creating Window";
 	}
 
-	while (1)
+	cout << "\n\n\t\tGame Window will open and Close after 10 seconds\n\n";
+	int i = 1;
+	while (i<=10)
 	{
 		SDL_RenderClear(render);
 		SDL_RenderPresent(render);
+		Sleep(1000);
+		cout << "\t\t" << i << endl;
+		i++;
 	}
 
 
