@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 	window = NULL;
 	render = NULL;
 
-	window = SDL_CreateWindow("My New Game ", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 720, 480, SDL_WINDOW_RESIZABLE);
+	window = SDL_CreateWindow(" Flappy Bird ", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 720, 480, SDL_WINDOW_RESIZABLE);
 
 	if (window)
 	{
