@@ -16,8 +16,10 @@ public:
 	SDL_Renderer* render;	//render pointer variable
 	SDL_Texture* player;	//Texture variable of the Player(bird)
 	SDL_Texture* bg;
+
 	SDL_Rect srcplayer, desplayer;
-	SDL_Event event1;
+	SDL_Event event1,pEvent;
+
 
 	bool gamestate;
 
@@ -47,6 +49,27 @@ bool Game::init()
 
 	window = NULL;
 	render = NULL;
+
+
+	srcplayer.h = 427;
+	srcplayer.w = 435;
+	srcplayer.x = 0;
+	srcplayer.y = 0;
+
+
+	//Destination Dimensions
+
+
+	desplayer.h = 100;
+
+	desplayer.w = 100;
+
+	desplayer.x = 100;
+
+	desplayer.y = 1;
+
+	
+
 
 
 	gamestate = false;
@@ -96,25 +119,76 @@ bool Game::init_renderer()
 	{
 		gamestate = true;
 		cout << "Successfully Created Window";
-	
+
 
 		player = TextureManager::Texture("Assets/bird.png", render);
 		bg = TextureManager::Texture("Assets/BG.png", render);
 
-	
-	
-		
+
+		//SDL_QueryTexture(player, NULL, NULL, &desplayer.w, &desplayer.h);
+
+
+
+		for (; desplayer.y <= 400;)
+		{
+			SDL_Delay(10);
+			
+
+			desplayer.y = desplayer.y + 1;
+
+
+			
+
 			SDL_RenderClear(render);
-			SDL_RenderCopy(render, bg, NULL,NULL);
+			SDL_RenderCopy(render, bg, NULL, NULL);
+
+
+			SDL_PollEvent(&pEvent);
+
+			if (desplayer.y > 0)
+			{
+
+				if (pEvent.type == SDL_KEYDOWN)
+				{
+
+					if (pEvent.key.keysym.sym == SDLK_SPACE)
+					{
+
+						desplayer.y = desplayer.y - 25;
+						cout << "UP arrow" << endl;
+					}
+
+					cout << "Key pressed" << endl;
+
+
+				}
+			}
+
+
 			SDL_RenderCopy(render, player, &srcplayer, &desplayer);
 			SDL_RenderPresent(render);
 
+			SDL_Delay(1000/60);
+
+
+		}
 		
+
+
+
+
+
+
+
 	}
+
 	else
 	{
 		success = false;
 	}
+	
+	
+	
 
 	return success;
 }
@@ -123,23 +197,13 @@ void Game::update_dimensions()
 {
 	//Source Dimensions
 
-	srcplayer.h = 427;
-	srcplayer.w = 435;
-	srcplayer.x = srcplayer.y = 0;
-
-	//Destination Dimensions
-
 	
 
-	desplayer.h = 120;
-
-	desplayer.w = 120;
-
-	desplayer.x = 100;
 	
-	desplayer.y++;
+	//cout << desplayer.y << endl;
+
 	
-	cout << desplayer.y << endl;
+	
 
 
 }

@@ -13,15 +13,14 @@ int main(int argc, char* argv[])
 	play.init();
 
 
-	while (play.getgamestate())
+	if(play.getgamestate())
 	{
-		
-		play.update_dimensions();
+		//play.update_dimensions();
 		play.init_renderer();
 		play.Event();
 
 
-
+		
 	}
 
 	
