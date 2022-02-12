@@ -4,6 +4,7 @@
 #include<SDL.h>
 #include<SDL_image.h>
 #include<SDL_mixer.h>
+#include<SDL_ttf.h>
 #include<Windows.h>
 #include "TextureManager.h"
 
@@ -21,6 +22,7 @@ public:
 	bool playstate;
 	bool menustate;
 	double bird_rotate;
+	bool gOver;
 
 	
 
@@ -33,8 +35,14 @@ public:
 	SDL_Texture* play;
 	SDL_Texture* esc;
 	SDL_Texture* hi_score;
+	SDL_Texture* fscore;
 
 
+	//FOnt
+	TTF_Font* flappyfont;
+
+	Mix_Music* menumusic;
+	Mix_Music* gameovermusic,*fly,*fell,*collide,*point,*button;
 
 
 
@@ -60,8 +68,19 @@ public:
 
 	//menu birds
 	SDL_Texture* tempbird1;
-	//SDL_Texture* tempbird2;
-	
+
+	//title 
+	SDL_Texture* title;
+
+
+	//menu
+	SDL_Texture* options;
+
+
+	//gameover
+	SDL_Texture* gameover_screen;
+
+
 
 	//Coords for Bird
 
@@ -84,12 +103,19 @@ public:
 	//Coords for Clouds
 	SDL_Rect srccloud1,srccloud2,srccloud3, descloud1, descloud2, descloud3;
 	SDL_Rect menupipe1, menupipe2,menupipe3,menupipe4;
+	SDL_Rect destitle, srctitle;
 
-	SDL_Event event1,pEvent,mainevent;
+
+
+
+
+	SDL_Event event1,pEvent,mainevent,gOver_event;
 
 	//Coors for main menu
+	SDL_Rect srcoption, desoption;
 
-
+	//Coords for Gameover
+	SDL_Rect srcGover, desGover;
 
 
 	bool gamestate;
@@ -122,8 +148,25 @@ bool Game::init()
 	window = NULL;
 	render = NULL;
 
+	gOver = false;
+	flappyfont = NULL;
 	bird_rotate = 0;
 	score = 0;
+
+	//Dimensions for Gameover Screen
+	srcGover.h = 1080;
+	srcGover.w = 1920;
+	srcGover.x = 0;
+	srcGover.y = 0;
+
+
+	desGover.h = 1080;
+	desGover.w = 1920;
+	desGover.x = 0;
+	desGover.y = 0;
+
+
+
 	//Dimensions for Ground
 	srcground.h = 218;
 	srcground.w = 3000;
@@ -156,7 +199,7 @@ bool Game::init()
 	desplayer.h = 140;
 	desplayer.w = 140;
 	desplayer.x = 450;
-	desplayer.y = 1;
+	desplayer.y = 400;
 
 	//Source Dimensions for Clouds
 	srccloud1.h = 248;
@@ -238,6 +281,30 @@ bool Game::init()
 	t_bird3.x = 1300;
 	t_bird3.y = 350;
 
+	//Source for Title
+	srctitle.h = 178;
+	srctitle.w = 846;
+	srctitle.x = 0;
+	srctitle.y = 0;
+
+	//Destination for options
+
+	destitle.h = 150;
+	destitle.w = 800;
+	destitle.x = 580;
+	destitle.y = 200;
+
+	//Source for options
+	srcoption.h = 462;
+	srcoption.w = 797;
+	srcoption.x = 0;
+	srcoption.y = 0;
+	//Destination for Options
+	desoption.h = 400;
+	desoption.w = 700;
+	desoption.x = 570;
+	desoption.y = 500;
+
 	//Source Dimensions for Pipe
 	
 	srcpipe.h = 736;
@@ -314,12 +381,12 @@ bool Game::init()
 	bool success = true;
 
 	SDL_Init(SDL_INIT_EVERYTHING);
-
+	//TTF_Init();
 	
 
 
 	
-	window = SDL_CreateWindow(" Flappy Bird ", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_HEIGHT, SCREEN_WIDTH, SDL_WINDOW_SHOWN);
+	window = SDL_CreateWindow(" Flappy Bird ", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_HEIGHT, SCREEN_WIDTH, SDL_WINDOW_ALWAYS_ON_TOP);
 	if (!(window))
 	{
 		std::cout << "Error Creating renderer , Error is : \n", SDL_GetError();
@@ -415,25 +482,50 @@ bool Game::init_game()
 
 		mainmenu = TextureManager::Texture("Assets/menu_bg.png", render);
 
+		title = TextureManager::Texture("Assets/tittle.png",render);
+		options = TextureManager::Texture("Assets/buttons.png", render);
 
-		static const char* mainmenu_bg = "Assets/menu_music.mpeg";
+		gameover_screen = TextureManager::Texture("Assets/game_over_screen.png", render);
 
+
+		SDL_Color col = {255,255,255,0};
+
+		flappyfont = TTF_OpenFont("Assets/FlappyBirdy.ttf", 25);
+
+		SDL_Surface* textsurface = TTF_RenderText_Solid(flappyfont, "HElllooo",col);
+		
+
+		hi_score = SDL_CreateTextureFromSurface(render, textsurface);
+		/*SDL_DestroyTexture(hi_score);
+		SDL_FreeSurface(textsurface);*/
+
+		//SDL_BlitSurface(textsurface, NULL, );
+
+		SDL_RenderCopy(render,hi_score,&srcplayer,&desplayer);
+		SDL_RenderPresent(render);
+		SDL_Delay(10000);
 		Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 640);
-		Mix_Music* music = Mix_LoadMUS(mainmenu_bg);
-		Mix_PlayMusic(music, 1);
+
+		menumusic = Mix_LoadMUS("Assets/menu_music.mpeg");
+		
+		if (menustate == true)
+		{
+			
+			Mix_PlayMusic(menumusic, 1);
+		}
+
 
 		SDL_RenderClear(render);
+
+
+		menu:
 		while (menustate == true)
 		{
 			
-
-			
-
-
-			SDL_RenderCopy(render, bg, NULL, NULL);
+			SDL_RenderCopy(render, mainmenu, NULL, NULL);
 
 			SDL_RenderCopy(render, cloud1, &srccloud1, &descloud1);
-			SDL_RenderCopy(render, cloud2, &srccloud2,&descloud2 );
+			SDL_RenderCopy(render, cloud2, &srccloud2, &descloud2);
 			SDL_RenderCopy(render, cloud3, &srccloud3, &descloud3);
 
 			SDL_RenderCopy(render, pipe1a, &srcpipe, &menupipe1);
@@ -445,7 +537,32 @@ bool Game::init_game()
 			SDL_RenderCopy(render, tempbird1, &srcbird, &t_bird2);
 			SDL_RenderCopy(render, player1, &srcplayer, &t_bird3);
 
+			SDL_RenderCopy(render, title, &srctitle, &destitle);
+			SDL_RenderCopy(render, options, &srcoption, &desoption);
+
+
+			descloud1.x -= 2;
+			descloud2.x -= 2;
+			descloud3.x -= 1;
+
+			if (descloud1.x < -400)
+			{
+				descloud1.x = SCREEN_HEIGHT;
+			}
+			if (descloud2.x < -400)
+			{
+				descloud2.x = SCREEN_HEIGHT;
+			}
+			if (descloud3.x < -400)
+			{
+				descloud3.x = SCREEN_HEIGHT;
+			}
+
+			
+			
 			SDL_PollEvent(&mainevent);
+
+
 
 			if (mainevent.type == SDL_KEYUP)
 			{
@@ -453,78 +570,110 @@ bool Game::init_game()
 				{
 					playstate == true;
 					menustate = false;
+					button = Mix_LoadMUS("Assets/buttonsound.mpeg");
+					Mix_PlayMusic(button,1);
+					SDL_Delay(400);
+					Mix_FreeMusic(menumusic);
+					menumusic = NULL;
 
 				}
 				else if (mainevent.key.keysym.sym == SDLK_ESCAPE)
 				{
-					exit(90);
+					exit(0);
 				}
 			}
 
+			SDL_Delay(1000 / 24);
 			SDL_RenderPresent(render);
 		}
 		
-			
+		
+
 		while (playstate == true)
 		{
+			SDL_RenderCopy(render, bg, NULL, NULL);
 
-
-
-			if (desplayer.y <900)
+			if (!gOver)
 			{
-				//cout << "true" << endl;
 
-				SDL_RenderCopy(render, bg, NULL, NULL);
 
-				desplayer.y = desplayer.y + 11;
 
-				bird_rotate = 0;
 
-				//cout << desplayer.y << endl;
-
-				SDL_RenderCopy(render, cloud1, &srccloud1, &descloud1);
-
-				descloud1.x -= 3;
-
-				SDL_PollEvent(&pEvent);
-
-				if (desplayer.y > 0)
+				if (desplayer.y < 900)
 				{
+					//cout << "true" << endl;
 
+					
 
-					if (pEvent.type == SDL_KEYDOWN)
+					desplayer.y = desplayer.y + 11;
+
+					bird_rotate = 0;
+
+					//cout << desplayer.y << endl;
+
+					SDL_RenderCopy(render, cloud1, &srccloud1, &descloud1);
+					SDL_RenderCopy(render, cloud2, &srccloud2, &descloud2);
+					SDL_RenderCopy(render, cloud3, &srccloud3, &descloud3);
+
+					descloud1.x -= 3;
+
+					descloud2.x -= 3;
+					descloud3.x -= 2;
+
+					if (descloud1.x < -400)
+					{
+						descloud1.x = SCREEN_HEIGHT;
+					}
+					if (descloud2.x < -400)
+					{
+						descloud2.x = SCREEN_HEIGHT;
+					}
+					if (descloud3.x < -400)
+					{
+						descloud3.x = SCREEN_HEIGHT;
+					}
+
+					SDL_PollEvent(&pEvent);
+
+					if (desplayer.y > 0)
 					{
 
-						if (pEvent.key.keysym.sym == SDLK_SPACE)
+
+						if (pEvent.type == SDL_KEYDOWN)
 						{
-
-
-
-
-							desplayer.y = desplayer.y - 80;
-
-							if (bird_rotate < -60)
-							{
-								bird_rotate -= 10;
-							}
 							
-							//acc++;
+							if (pEvent.key.keysym.sym == SDLK_SPACE)
+							{
 
-							std::cout << "Space" << endl;
+								fly = Mix_LoadMUS("Assets/fly.mpeg");
+								Mix_PlayMusic(fly, 2);
+
+
+								desplayer.y = desplayer.y - 80;
+
+								
+								
+								cout << "Space" << endl;
+
+							}
+
+
+
+
+							if (pEvent.key.keysym.sym == SDLK_ESCAPE)
+							{
+								std::cout << "Escape" << endl;
+								gamestate = false;
+
+								break;
+							}
+
+							//cout << "Key pressed" << endl;
+
+
+
 
 						}
-
-
-
-
-						if (pEvent.key.keysym.sym == SDLK_ESCAPE)
-						{
-							std::cout << "Escape" << endl;
-							gamestate = false;
-							break;
-						}
-
-						//cout << "Key pressed" << endl;
 
 
 
@@ -534,49 +683,79 @@ bool Game::init_game()
 
 
 
-				}
+					if (desplayer.y <= 900)
+					{
+
+						despipe1a.x -= 10;
+						despipe1b.x -= 10;
+
+						despipe2a.x -= 10;
+						despipe2b.x -= 10;
+
+						despipe3a.x -= 10;
+						despipe3b.x -= 10;
+
+						despipe4a.x -= 10;
+						despipe4b.x -= 10;
+
+						despipe5a.x -= 10;
+						despipe5b.x -= 10;
 
 
 
 
-				if (desplayer.y <= 900)
-				{
+						SDL_RenderCopy(render, pipe1a, &srcpipe, &despipe1a);
+						SDL_RenderCopy(render, pipe1b, &srcpipe, &despipe1b);
 
-					despipe1a.x -= 10;
-					despipe1b.x -= 10;
 
-					despipe2a.x -= 10;
-					despipe2b.x -= 10;
+						SDL_RenderCopy(render, pipe1a, &srcpipe, &despipe2a);
+						SDL_RenderCopy(render, pipe1b, &srcpipe, &despipe2b);
 
-					despipe3a.x -= 10;
-					despipe3b.x -= 10;
+						SDL_RenderCopy(render, pipe1a, &srcpipe, &despipe3a);
+						SDL_RenderCopy(render, pipe1b, &srcpipe, &despipe3b);
 
-					despipe4a.x -= 10;
-					despipe4b.x -= 10;
+						SDL_RenderCopy(render, pipe1a, &srcpipe, &despipe4a);
+						SDL_RenderCopy(render, pipe1b, &srcpipe, &despipe4b);
 
-					despipe5a.x -= 10;
-					despipe5b.x -= 10;
+						SDL_RenderCopy(render, pipe1a, &srcpipe, &despipe5a);
+						SDL_RenderCopy(render, pipe1b, &srcpipe, &despipe5b);
 
 
 
-
-					SDL_RenderCopy(render, pipe1a, &srcpipe, &despipe1a);
-					SDL_RenderCopy(render, pipe1b, &srcpipe, &despipe1b);
+						
 
 
-					SDL_RenderCopy(render, pipe1a, &srcpipe, &despipe2a);
-					SDL_RenderCopy(render, pipe1b, &srcpipe, &despipe2b);
+					
+					
+					if (despipe1a.x < -1100)
+					{
+						despipe1a.x = SCREEN_HEIGHT;
+						despipe1b.x = despipe1a.x;
+					}
 
-					SDL_RenderCopy(render, pipe1a, &srcpipe, &despipe3a);
-					SDL_RenderCopy(render, pipe1b, &srcpipe, &despipe3b);
+					if (despipe2a.x < -1100)
+					{
+						despipe2a.x = despipe1a.x + 600;
+						despipe2b.x = despipe1b.x + 600;
+					}
 
-					SDL_RenderCopy(render, pipe1a, &srcpipe, &despipe4a);
-					SDL_RenderCopy(render, pipe1b, &srcpipe, &despipe4b);
+					if (despipe3a.x < -1100)
+					{
+						despipe3a.x = despipe2a.x + 600;
+						despipe3b.x = despipe2b.x + 600;
+					}
 
-					SDL_RenderCopy(render, pipe1a, &srcpipe, &despipe5a);
-					SDL_RenderCopy(render, pipe1b, &srcpipe, &despipe5b);
+					if (despipe4a.x < -1100)
+					{
+						despipe4a.x = despipe3a.x + 600;
+						despipe4b.x = despipe3b.x + 600;
+					}
 
-
+					if (despipe5a.x < -1100)
+					{
+						despipe5a.x = despipe4a.x + 600;
+						despipe5b.x = despipe4b.x + 600;
+					}
 
 					//Collision for pipe 1
 
@@ -586,14 +765,19 @@ bool Game::init_game()
 
 						if (desplayer.x == despipe1a.x)
 						{
+							point = Mix_LoadMUS("Assets/point.mpeg");
+							Mix_PlayMusic(point, 1);
 							score++;
 						}
 						if (desplayer.y <= despipe1b.h + despipe1b.y - 30 || desplayer.y >= despipe1a.h - 40)
 						{
+							collide = Mix_LoadMUS("Assets/collide.mpeg");
+							Mix_PlayMusic(collide, 1);
+							SDL_Delay(700);
+							gOver = true;
+							SDL_RenderCopy(render, gameover_screen, &srcGover, &desGover);
 
 
-
-							exit(0);
 						}
 					}
 
@@ -602,12 +786,17 @@ bool Game::init_game()
 					{
 						if (desplayer.x == despipe2a.x)
 						{
+							point = Mix_LoadMUS("Assets/point.mpeg");
+							Mix_PlayMusic(point, 1);
 							score++;
 						}
 						if (desplayer.y <= despipe2b.h + despipe2b.y - 30 || desplayer.y >= despipe2a.h - 30)
 						{
-
-							exit(0);
+							collide = Mix_LoadMUS("Assets/collide.mpeg");
+							Mix_PlayMusic(collide, 1);
+							SDL_Delay(700);
+							gOver = true;
+							SDL_RenderCopy(render, gameover_screen, &srcGover, &desGover);
 						}
 					}
 
@@ -617,14 +806,18 @@ bool Game::init_game()
 					{
 						if (desplayer.x == despipe3a.x)
 						{
+							point = Mix_LoadMUS("Assets/point.mpeg");
+							Mix_PlayMusic(point, 1);
 							score++;
 						}
 
 						if (desplayer.y <= despipe3b.h + despipe3b.y - 30 || desplayer.y >= despipe3a.h + 10)
 						{
-
-
-							exit(0);
+							collide = Mix_LoadMUS("Assets/collide.mpeg");
+							Mix_PlayMusic(collide, 1);
+							SDL_Delay(700);
+							gOver = true;
+							SDL_RenderCopy(render, gameover_screen, &srcGover, &desGover);
 						}
 					}
 
@@ -635,12 +828,17 @@ bool Game::init_game()
 
 						if (desplayer.x == despipe4a.x)
 						{
+							point = Mix_LoadMUS("Assets/point.mpeg");
+							Mix_PlayMusic(point, 1);
 							score++;
 						}
 						if (desplayer.y <= despipe4b.h + despipe4b.y - 30 || desplayer.y >= despipe4a.h - 20)
 						{
-
-							exit(0);
+							collide = Mix_LoadMUS("Assets/collide.mpeg");
+							Mix_PlayMusic(collide, 1);
+							SDL_Delay(700);
+							gOver = true;
+							SDL_RenderCopy(render, gameover_screen, &srcGover, &desGover);
 						}
 					}
 
@@ -651,14 +849,17 @@ bool Game::init_game()
 
 						if (desplayer.x == despipe5a.x)
 						{
+							point = Mix_LoadMUS("Assets/point.mpeg");
+							Mix_PlayMusic(point, 1);
 							score++;
 						}
 						if (desplayer.y <= despipe5b.h + despipe5b.y - 30 || desplayer.y >= despipe5a.h + 100)
 						{
-
-
-
-							exit(0);
+							collide = Mix_LoadMUS("Assets/collide.mpeg");
+							Mix_PlayMusic(collide, 1);
+							SDL_Delay(700);
+							gOver = true;
+							SDL_RenderCopy(render, gameover_screen, &srcGover, &desGover);
 						}
 					}
 
@@ -669,89 +870,79 @@ bool Game::init_game()
 
 
 
+					}
+
+
+					SDL_RenderCopyEx(render, SDL_GetTicks() % 200 > 150 ? player1 : player2, & srcplayer, & desplayer, 0, NULL, SDL_FLIP_NONE);
+
+
+
+					if (gOver)
+					{
+						gameovermusic = Mix_LoadMUS("Assets/gameover.mpeg");
+						Mix_PlayMusic(gameovermusic, 1);
+					}
+
+					while (gOver)
+					{
+						SDL_PollEvent(&gOver_event);
+
+						if (gOver_event.type == SDL_KEYDOWN)
+						{
+							if (gOver_event.key.keysym.sym == SDLK_ESCAPE)
+							{
+								exit(0);
+							}
+							if (gOver_event.key.keysym.sym == SDLK_KP_ENTER)
+							{
+								//goto menu;
+							}
+							if (gOver_event.key.keysym.sym == SDLK_BACKSPACE)
+							{
+								menustate = true;
+
+							}
+
+						}
+					}
+
+
+
+
+
+					SDL_RenderCopy(render, levelloop1, &srcground, &desground1);
+					SDL_RenderCopy(render, levelloop2, &srcground, &desground2);
+					
+					desground1.x -= 10;
+					desground2.x -= 10;
+					if (desground1.x < -1920)
+					{
+						desground1.x = 0;
+						desground2.x = 1920;
+
+					}
+
+
+
+
+
+
+					SDL_RenderPresent(render);
+
+					SDL_Delay(1000 / 24);
+
+					std::cout << score << endl;
+
+
+
+
+
+
+
+
 				}
-
-
-
-
-				/*if (desplayer.y % 2 == 0)
-				{
-					SDL_RenderCopy(render, player1, &srcplayer, &desplayer);
-
-
-				}
-				else if (desplayer.y % 2 != 0)
-				{
-					SDL_RenderCopy(render, player2, &srcplayer, &desplayer);
-
-
-				}*/
-
-				SDL_RenderCopyEx(render, SDL_GetTicks() % 200 > 150 ? player1 : player2, & srcplayer, & desplayer, 0 , NULL, SDL_FLIP_NONE);
-
-				if (despipe1a.x < -1100)
-				{
-					despipe1a.x = SCREEN_HEIGHT;
-					despipe1b.x = despipe1a.x;
-				}
-
-				if (despipe2a.x < -1100)
-				{
-					despipe2a.x = despipe1a.x + 600;
-					despipe2b.x = despipe1b.x + 600;
-				}
-
-				if (despipe3a.x < -1100)
-				{
-					despipe3a.x = despipe2a.x + 600;
-					despipe3b.x = despipe2b.x + 600;
-				}
-
-				if (despipe4a.x < -1100)
-				{
-					despipe4a.x = despipe3a.x + 600;
-					despipe4b.x = despipe3b.x + 600;
-				}
-
-				if (despipe5a.x < -1100)
-				{
-					despipe5a.x = despipe4a.x + 600;
-					despipe5b.x = despipe4b.x + 600;
-				}
-
-				SDL_RenderCopy(render, levelloop1, &srcground, &desground1);
-				SDL_RenderCopy(render, levelloop2, &srcground, &desground2);
-
-				desground1.x -= 11;
-				desground2.x -= 11;
-				if (desground1.x < -1920)
-				{
-					desground1.x = 0;
-					desground2.x = 1920;
-
-				}
-
-
-
-
-
-
-				SDL_RenderPresent(render);
-
-				SDL_Delay(1000 / 24);
-
-				std::cout << score << endl;
-
-
-
-
-
-
-
 
 			}
-
-
 
 
 		}

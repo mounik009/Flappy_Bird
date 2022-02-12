@@ -7,13 +7,13 @@ using namespace std;
 
 
 
-int main(int argc, char** argv)
+int main(int argc,char** argv)
 {
 
 	play.init();
 
 
-	if(play.getgamestate())
+	while(play.getgamestate())
 	{
 		if (play.init_render())
 		{
