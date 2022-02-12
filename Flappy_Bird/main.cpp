@@ -7,7 +7,7 @@ using namespace std;
 
 
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
 
 	play.init();
@@ -15,12 +15,16 @@ int main(int argc, char* argv[])
 
 	if(play.getgamestate())
 	{
-		//play.update_dimensions();
-		play.init_renderer();
-		play.Event();
-
-
-		
+		if (play.init_render())
+		{
+			
+			{
+				play.init_game();
+				play.Event();
+			}
+			
+		}
+			
 	}
 
 	
