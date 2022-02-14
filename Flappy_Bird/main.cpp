@@ -17,11 +17,9 @@ int main(int argc,char** argv)
 	{
 		if (play.init_render())
 		{
+			play.init_game();
+			play.Event();
 			
-			{
-				play.init_game();
-				play.Event();
-			}
 			
 		}
 			

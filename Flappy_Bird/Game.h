@@ -875,20 +875,20 @@ bool Game::init_game()
 
 							if (score >= 20)
 							{
-								despipe1a.x -=15;
-								despipe1b.x -=15;
+								despipe1a.x -=20;
+								despipe1b.x -=20;
 											  
-								despipe2a.x -=15;
-								despipe2b.x -=15;
+								despipe2a.x -=20;
+								despipe2b.x -=20;
 											  
-								despipe3a.x -=15;
-								despipe3b.x -=15;
+								despipe3a.x -=20;
+								despipe3b.x -=20;
 											  
-								despipe4a.x -=15;
-								despipe4b.x -=15;
+								despipe4a.x -=20;
+								despipe4b.x -=20;
 											  
-								despipe5a.x -=15;
-								despipe5b.x -=15;
+								despipe5a.x -=20;
+								despipe5b.x -=20;
 							}
 
 
@@ -1037,7 +1037,7 @@ bool Game::init_game()
 									score++;
 								}
 
-								if (desplayer.y <= despipe3b.h + despipe3b.y - 30 || desplayer.y >= despipe3a.h + 30)
+								if (desplayer.y <= despipe3b.h + despipe3b.y - 30 || desplayer.y >= despipe3a.h + 50)
 								{
 									collide = Mix_LoadMUS("Assets/collide.mpeg");
 									Mix_PlayMusic(collide, 1);
